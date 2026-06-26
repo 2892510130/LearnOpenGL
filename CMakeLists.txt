@@ -15,6 +15,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # list(REMOVE_ITEM SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/vender/some_library/unwanted.cpp)
 
 add_subdirectory(vendor/GLAD)
+add_subdirectory(vendor/stb)
 
 add_executable(intro 
     src/main.cpp
@@ -25,11 +26,13 @@ add_definitions(-DGLEW_STATIC)
 target_include_directories(intro PUBLIC include)
 target_include_directories(intro PRIVATE 
     vendor/GLFW/include
+    vendor/stb
 )
 target_link_directories(intro PRIVATE vendor/GLFW/lib-mingw-w64)
 target_link_libraries(intro PRIVATE 
     GLAD
     glfw3
+    stb
     gdi32
     Opengl32
 )
