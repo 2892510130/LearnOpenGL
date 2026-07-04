@@ -16,23 +16,29 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 add_subdirectory(vendor/GLAD)
 add_subdirectory(vendor/stb)
+add_subdirectory(vendor/glm)
 
 add_executable(intro 
     src/main.cpp
 )
 
 add_definitions(-DGLEW_STATIC)
+target_compile_definitions(intro PRIVATE
+    ROOT_PATH="${CMAKE_SOURCE_DIR}"
+)
 
 target_include_directories(intro PUBLIC include)
 target_include_directories(intro PRIVATE 
     vendor/GLFW/include
     vendor/stb
+    vendor/glm
 )
 target_link_directories(intro PRIVATE vendor/GLFW/lib-mingw-w64)
 target_link_libraries(intro PRIVATE 
     GLAD
     glfw3
     stb
+    glm
     gdi32
     Opengl32
 )
