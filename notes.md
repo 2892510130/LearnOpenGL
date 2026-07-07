@@ -36,8 +36,10 @@ usage are how we want GPU to handle the given data:
 ## GLSL language
 - glsl data type: int, float, double, uint, bool and vector and matrix
 - vecn (float), bvecn, ivecn, uvecn, dvecn where n is the number. we can swizzling (重组) them like:
-    -  vec2 a; vec4 b = a.xyxx;
--  Uniform: global and same for all shader
+    - vec2 a; vec4 b = a.xyxx;
+- Uniform: global and same for all shader
+- `texture(texture, texcoord)` is sampling from texture
+- sampler2D is Opaque Type, we can only use it with uniform.
 
 ## Texture
 - Texture coordinates are in (x, y) -> (0, 1), where (0, 0) is bottom left. 
@@ -92,6 +94,26 @@ first one is FOV.
   - **Specular Lighting**: light spot. If we view it right at the reflection line, it will be most light.
 - If we do the light in the vertex shader rather than the fragment shader, we call it **Gouraud Shading**, which is blur. Because in this way the light is calculate on vertex then filter between. In Phong model, the normal and pos are filtered but the color is not.
 - More people do it in view space rather than world space. See bottom.
+
+## Light Map and Light Caster
+- We use texture to replace ambient and diffuse light of the object, this is called **Diffuse Map**;
+- Then we use another texture to represent specular, which is **Specular Map**.
+- We can also use another texture to mimic a emission effect, which is **Emission Map**.
+- **Direction Light** is the parallel light, like the sun. `vec3 lightDir = normalize(-light.direction);`
+- **Point Light**, we need to decay (Attenuation) the light strength. The math is 
+  - $$F_{att} = \frac{1.0}{K_c + K_l d + K_q d^2}$$
+  - where $d$ is the distance
+- **Spotlight**, look at https://learnopengl-cn.github.io/img/02/05/light_casters_spotlight_angles.png.
+  - We have `LightDir` fragment to light, `SpotDir` the direction of the spot.
+  - $\phi$ is the cutoff angle of the spotlight. $\theta$ is angle between `LightDir` and `SpotDir`.
+  - `float theta = dot(lightDir, normalize(-light.direction)); ` and `objectShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));` is using cos not the angle itself, because we need to compare.
+- Soft edge of the spot light: using two cone, between them we decay the light using intensity
+  - $$I = \frac{\theta - \gamma}{\epsilon}, \epsilon = \phi - \gamma$$
+
+## Model Loading
+- Assimp library, https://learnopengl-cn.github.io/img/03/01/assimp_structure.png.
+  - It load model into **Scene**, then we walk through its nodes to get the mesh data.
+- We load mesh with name as `diffuseNr` and `specularNr` because it is more general, though in the code we only use `diffuse1` and `specular1`.
 
 ## The Pipeline of OpenGL
 1. The Shader (Vertex and Fragment)

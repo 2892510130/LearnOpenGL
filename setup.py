@@ -26,6 +26,4 @@ subprocess.run(["cmake", "-G MinGW Makefiles", f"-DCMAKE_BUILD_TYPE={config_type
 
 subprocess.run(["cmake", "--build", "."], check=True)
 
-# print(os.path.exists(f"{folder_path}/bin/intro.exe"), f"{folder_path}/bin/intro.exe", os.getcwd())
-
-subprocess.run([f"{os.getcwd()}/bin/intro.exe"], check=True)
+# subprocess.run([f"{os.getcwd()}/bin/intro.exe"], check=True)

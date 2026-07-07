@@ -12,33 +12,40 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 #      "src/*.cpp"
 # )
 
-# list(REMOVE_ITEM SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/vender/some_library/unwanted.cpp)
-
 add_subdirectory(vendor/GLAD)
 add_subdirectory(vendor/stb)
 add_subdirectory(vendor/glm)
-
-add_executable(intro 
-    src/main.cpp
-)
+add_subdirectory(vendor/assimp)
 
 add_definitions(-DGLEW_STATIC)
-target_compile_definitions(intro PRIVATE
-    ROOT_PATH="${CMAKE_SOURCE_DIR}"
-)
 
-target_include_directories(intro PUBLIC include)
-target_include_directories(intro PRIVATE 
-    vendor/GLFW/include
-    vendor/stb
-    vendor/glm
-)
-target_link_directories(intro PRIVATE vendor/GLFW/lib-mingw-w64)
-target_link_libraries(intro PRIVATE 
-    GLAD
-    glfw3
-    stb
-    glm
-    gdi32
-    Opengl32
-)
+function(add_exes TARGET_NAME SOURCE_FILE)
+    add_executable(${TARGET_NAME} 
+        ${SOURCE_FILE}
+    )
+
+    target_compile_definitions(${TARGET_NAME} PRIVATE
+        ROOT_PATH="${CMAKE_SOURCE_DIR}"
+    )
+
+    target_include_directories(${TARGET_NAME} PUBLIC include)
+    target_include_directories(${TARGET_NAME} PRIVATE 
+        vendor/GLFW/include
+        vendor/stb
+        vendor/glm
+        vendor/assimp/include
+    )
+    target_link_directories(${TARGET_NAME} PRIVATE vendor/GLFW/lib-mingw-w64)
+    target_link_libraries(${TARGET_NAME} PRIVATE 
+        GLAD
+        glfw3
+        stb
+        glm
+        assimp
+        gdi32
+        Opengl32
+    )
+endfunction()
+
+add_exes(intro src/intro.cpp)
+add_exes(advance src/advance.cpp)
