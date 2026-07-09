@@ -9,7 +9,7 @@ class Texture
 public:
     unsigned int ID;
 
-    Texture(std::string texture_path)
+    Texture(std::string texture_path, bool flip_image = true)
     {
         glGenTextures(1, &ID);
         glBindTexture(GL_TEXTURE_2D, ID);
@@ -17,7 +17,7 @@ public:
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
+        stbi_set_flip_vertically_on_load(flip_image); // tell stb_image.h to flip loaded texture's on the y-axis.
 
         int width, height, numberChannels;
         unsigned char* data = stbi_load(texture_path.c_str(), &width, &height, &numberChannels, 0);
