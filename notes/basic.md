@@ -150,7 +150,7 @@ Shader(const char* vertexPath, const char* fragmentPath)
 }
 
 // Then when we use this program
-glUseProgram();
+glUseProgram(ID);
 ```
 2. VAO (the pointer), VBO and EBO
 ```

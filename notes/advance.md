@@ -49,3 +49,38 @@ Every face, every triangle has its rotation based on the vertice order, so we ca
 - We have introduced a lot of frame buffer before, like color buffer, depth buffer and scentil buffer...
 - But we can also define our own frame buffer to get additional target.
   - Like other buffer, we can use `glGenFramebuffers` to generate a new buffer.
+  - `glBindFramebuffer(GL_FRAMEBUFFER, ID);` to bind
+- A **complete** frame buffer neeeds:
+  - A buffer (like color buffer, depth buffer and scentil buffer)
+  - A color **attachment** and they should be complete (keep memory)
+  - Every buffer have the same **sample**
+  - `if(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)` to check it
+  - Bind the buffer back to 0 will get to the default frame buffer
+- Attachment can be texture or **Renderbuffer Object**
+  - For texture attachment, we can generate a texture with NULL data.
+    - If we want to render with little or larger texture to window, we need to use `glViewport`
+    - `glFramebufferTexture2D(target, attachment, textarget, texture, level);` put texture to frame buffer
+    - We can put a color texture to it, or depth/scentil. 
+    - We can aslo put a depth_scentil texture to it:
+    - ```glTexImage2D(
+        GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, 800, 600, 0, 
+        GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL
+        );
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture, 0);
+  - For renderbuffer object
+    - It is saved in native OpenGL render format, optimized for **off-screen** render.
+    - It is usually write-only and it is good for depth and scentil buffer because we usually do not sample from it.
+    - `glGenRenderbuffers` to generate it, and `glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 800, 600);` to build the object.
+- So we can generate a frame buffer, add a texture attachment as color buffer, add a render buffer object as depth and scentil buffer. Then we draw the color buffer attachment at default frame buffer.
+  - So we can then in the default frame buffer, use the screen shader, do some post process.
+  - For the kernel post process, we can set all the wrap parameters as clamp to edge, because we need to sample from pixel from neighbor pixel.
+  
+## Cube Maps
+- It is basically 6 image as textures to six faces, and we can use a direction to sample from these textures
+    - `glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);` to bind it. `glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);` wrap between textures.
+    - ``` 
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+- And in GLSL shader, we use a `samplerCube`, and use `texture` same as normal textures.
+- `glm::mat4 view = glm::mat4(glm::mat3(camera.GetViewMatrix()));` to remove translation so we can use it as a **Skybox**.
+  - Optimization: in shader, we can set the pos z as w, so we get z / w = 1.0, the depth processed will always be 1.0, and depth test will always ignore it. Draw this skybox at last will save us a lot of time.
+- **Enviroment Mapping**
