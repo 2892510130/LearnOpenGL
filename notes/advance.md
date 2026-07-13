@@ -78,9 +78,50 @@ Every face, every triangle has its rotation based on the vertice order, so we ca
 ## Cube Maps
 - It is basically 6 image as textures to six faces, and we can use a direction to sample from these textures
     - `glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);` to bind it. `glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);` wrap between textures.
-    - ``` 
+    - ```
         glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 - And in GLSL shader, we use a `samplerCube`, and use `texture` same as normal textures.
 - `glm::mat4 view = glm::mat4(glm::mat3(camera.GetViewMatrix()));` to remove translation so we can use it as a **Skybox**.
   - Optimization: in shader, we can set the pos z as w, so we get z / w = 1.0, the depth processed will always be 1.0, and depth test will always ignore it. Draw this skybox at last will save us a lot of time.
-- **Enviroment Mapping**
+- **Enviroment Mapping**: we can use skybox as textures, reflect it or refract it for a mirror like object.
+  - refract: `refract(I, normalize(Normal), ratio);`
+  - reflect: `reflect(I, normalize(Normal));`
+  - Then `FragColor = vec4(texture(skybox, R).rgb, 1.0);`.
+
+## Advanced Data
+- `glBufferSubData`, fill certain part of the buffer, must after `glBufferData`.
+  - `glBufferSubData(GL_ARRAY_BUFFER, 24, sizeof(data), &data); // 范围： [24, 24 + sizeof(data)]`
+  - We can use this method to get vertex attribute seperatly, though we recommend the interleave way.
+- We can also use `glMapBuffer`:
+    - ```cpp
+        void *ptr = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+        // 复制数据到内存
+        memcpy(ptr, data, sizeof(data));
+        // 记得告诉OpenGL我们不再需要这个指针了
+        glUnmapBuffer(GL_ARRAY_BUFFER);
+        ```
+- Copy buffer data to another buffer (different type):
+    - ```cpp
+        void glCopyBufferSubData(GLenum readtarget, GLenum writetarget, GLintptr readoffset,
+                            GLintptr writeoffset, GLsizeiptr size);
+        ```
+    - For the same type we can use other type:
+    - ```cpp
+        glBindBuffer(GL_COPY_READ_BUFFER, vbo1);
+        glBindBuffer(GL_COPY_WRITE_BUFFER, vbo2);
+        glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, sizeof(vertexData));
+        ```
+
+## Advanced GLSL
+- **Built-in Variable**
+  - In vertex shader
+    - `gl_PointSize` to set the point size, need `glEnable(GL_PROGRAM_POINT_SIZE);`.
+    - `gl_VertexID` is read-only, for `glDrawElements` it save index, for `glDrawArrays` it save total number.
+  - In fragment shader
+    - `gl_FragCoord` we are familiar with
+    - `gl_FrontFacing` check whether this face is front face or back face
+    - `gl_FragDepth` write the depth, but will disable the depth check
+      - But after OpenGL 4.2+ we can enable depth check while we write `gl_FragDepth` if we can make sure we are certain to write a bigger depth or less depth.
+      - `layout (depth_<condition>) out float gl_FragDepth;`
+- **Interface Block**
+  - 

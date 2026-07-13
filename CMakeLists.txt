@@ -8,10 +8,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-# file(GLOB_RECURSE SOURCE_FILES 
-#      "src/*.cpp"
-# )
-
 add_subdirectory(vendor/GLAD)
 add_subdirectory(vendor/stb)
 add_subdirectory(vendor/glm)
@@ -20,6 +16,7 @@ add_subdirectory(vendor/assimp)
 add_definitions(-DGLEW_STATIC)
 
 function(add_exes TARGET_NAME SOURCE_FILE)
+
     add_executable(${TARGET_NAME} 
         ${SOURCE_FILE}
     )
@@ -28,14 +25,21 @@ function(add_exes TARGET_NAME SOURCE_FILE)
         ROOT_PATH="${CMAKE_SOURCE_DIR}"
     )
 
-    target_include_directories(${TARGET_NAME} PUBLIC include)
+    target_include_directories(${TARGET_NAME} PUBLIC 
+        include
+    )
+
     target_include_directories(${TARGET_NAME} PRIVATE 
         vendor/GLFW/include
         vendor/stb
         vendor/glm
         vendor/assimp/include
     )
-    target_link_directories(${TARGET_NAME} PRIVATE vendor/GLFW/lib-mingw-w64)
+
+    target_link_directories(${TARGET_NAME} PRIVATE 
+        vendor/GLFW/lib-mingw-w64
+    )
+
     target_link_libraries(${TARGET_NAME} PRIVATE 
         GLAD
         glfw3
@@ -45,6 +49,7 @@ function(add_exes TARGET_NAME SOURCE_FILE)
         gdi32
         Opengl32
     )
+
 endfunction()
 
 add_exes(intro src/intro.cpp)
