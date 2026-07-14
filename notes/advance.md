@@ -123,5 +123,75 @@ Every face, every triangle has its rotation based on the vertice order, so we ca
     - `gl_FragDepth` write the depth, but will disable the depth check
       - But after OpenGL 4.2+ we can enable depth check while we write `gl_FragDepth` if we can make sure we are certain to write a bigger depth or less depth.
       - `layout (depth_<condition>) out float gl_FragDepth;`
-- **Interface Block**
-  - 
+- **Interface Block**, looks like struct but with in and out.
+- **Uniform Buffer Object**
+  - Same uniform structer across different shader. The struct layout are default **shared**, which means OpenGL can decide how to layout the structer data in memory, and it makes us hard to get the offset.
+  - So we have **std140** layout, let us have a clear offset of the data, every data has its **Base Alignment**, so we can compute its **Aligned Offset**. $N$ represent 4 bytes. We also have `packed` layout, its layout may be different across different shaders.
+    - For scalar, it is $N$.
+    - For vec, it is $2N$ or $4N$, so vec3 is $4N$.
+    - For array, matrices, its elements are $4N$.
+  - ```cpp
+        layout (std140) uniform ExampleBlock
+        {
+                             // 基准对齐量       // 对齐偏移量
+            float value;     // 4               // 0 
+            vec3 vector;     // 16              // 16  (必须是16的倍数，所以 4->16)
+            mat4 matrix;     // 16              // 32  (列 0)
+                             // 16              // 48  (列 1)
+                             // 16              // 64  (列 2)
+                             // 16              // 80  (列 3)
+            float values[3]; // 16              // 96  (values[0])
+                             // 16              // 112 (values[1])
+                             // 16              // 128 (values[2])
+            bool boolean;    // 4               // 144
+            int integer;     // 4               // 148
+        }; 
+    ```
+  - How can we bind the unifrom buffer object to the uniform block? Using **Binding Point**.
+    - Look at https://learnopengl-cn.github.io/img/04/08/advanced_glsl_binding_points.png. The block is in shader, and buffer object is in our code.
+    - ```cpp
+        // Binding block to binding point
+        unsigned int lights_index = glGetUniformBlockIndex(shaderA.ID, "Lights");   
+        glUniformBlockBinding(shaderA.ID, lights_index, 2);
+        ```
+    - In OpenGL 4.2+, we can directly set it in shader like: `layout(std140, binding = 2) uniform Lights { ... };`.
+    - ```cpp
+        // Binding the buffer object to binding point
+        glBindBufferBase(GL_UNIFORM_BUFFER, 2, uboExampleBlock); 
+        // or, the offset must be multiplier of GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT
+        glBindBufferRange(GL_UNIFORM_BUFFER, 2, uboExampleBlock, 0, 152);
+
+        // set the data
+        glBindBuffer(GL_UNIFORM_BUFFER, uboExampleBlock);
+        int b = true; // GLSL中的bool是4字节的，所以我们将它存为一个integer
+        glBufferSubData(GL_UNIFORM_BUFFER, 144, 4, &b); 
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        ```
+
+## Geometry Shader
+- It is optional, and it is between vertex shader and fragment shader. We can specify in or out for the data.
+  - For in, we have `points`, `lines`, `lines_adjacency`, `triangles`, `triangles_adjacency`
+  - For out, we have `points`, `line_strip`, `triangle_strip`, it will decide how many vertices we have, for example triangle_strip is 3.
+  - We can use `EmitVertex` and `EndPrimitive` to generate new vertex based on vertex data from vertex shader.
+  - ```cpp
+        in gl_PerVertex {
+            vec4 gl_Position;
+            float gl_PointSize;
+            float gl_ClipDistance[];
+        } gl_in[];
+    ```
+  - Just remember that the type in in and out is important, this will decide how we handle the input vertex and how to output it.
+
+## Instancing
+- Reduce the times we call the function, render instance by one call. Using `glDrawArraysInstanced` and `glDrawElementsInstanced`. Then use `gl_InstanceID` to distinguish between them.
+- `Instanced Array` are used because uniform has a limit in numbers we can use, like `uniform vec3 box[101]` maybe too large.
+- `glVertexAttribDivisor(2, 1);` the second term is **Attribute Divisor**, it sets to 1 to tell openGL this is an instanced vertex attribute (update vertex attribute when render new instance). If it sets to 0, then it will update the vertex attribute every frame.
+
+## Anti Aliasing
+- In order to get rid of **Jagged Edges** problem. We have **Super Sample Anti-aliasing** but it is expensive, so we have more effcient technique like **Multisample Anti-aliasing**.
+  - It samples from 4 points (inside a pixel), or more.
+  - Only do depth/scentil on all sub points, and do color compute only once. 
+  - If we find at least one sub point is inside the triangle, then we get the color as triangle color. And in the end we compute the finnal color as [N_outside * background_color (in the color buffer) + N_inside * triangle_color] / N.
+- We can set `glfwWindowHint(GLFW_SAMPLES, 4);` to tell GLFW, and best call `glEnable(GL_MULTISAMPLE);`.
+- **Off-screen MSAA**
+  - Just like what we talk in frame buffer section. Read the code.
