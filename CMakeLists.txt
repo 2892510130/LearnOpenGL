@@ -54,3 +54,4 @@ endfunction()
 
 add_exes(intro src/intro.cpp)
 add_exes(advance src/advance.cpp)
+add_exes(light_advanced src/light_advanced.cpp)
