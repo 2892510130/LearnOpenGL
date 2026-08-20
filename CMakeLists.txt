@@ -8,12 +8,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-add_subdirectory(vendor/GLAD)
+add_subdirectory(vendor/glfw)
+add_subdirectory(vendor/glad)
 add_subdirectory(vendor/stb)
 add_subdirectory(vendor/glm)
 add_subdirectory(vendor/assimp)
-
-add_definitions(-DGLEW_STATIC)
+add_subdirectory(vendor/imgui)
 
 function(add_exes TARGET_NAME SOURCE_FILE)
 
@@ -42,7 +42,7 @@ function(add_exes TARGET_NAME SOURCE_FILE)
 
     target_link_libraries(${TARGET_NAME} PRIVATE 
         GLAD
-        glfw3
+        glfw
         stb
         glm
         assimp
@@ -55,3 +55,19 @@ endfunction()
 add_exes(intro src/intro.cpp)
 add_exes(advance src/advance.cpp)
 add_exes(light_advanced src/light_advanced.cpp)
+
+# ImGui supported exe
+
+add_executable(imguiGraphicTest
+    src/imgui_graphic.cpp
+    src/application.cpp
+    src/debug_ui.cpp
+)
+
+target_link_libraries(imguiGraphicTest
+    imgui
+)
+
+target_include_directories(imguiGraphicTest PRIVATE
+    ./include
+)
