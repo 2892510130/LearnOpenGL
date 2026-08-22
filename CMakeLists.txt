@@ -36,10 +36,6 @@ function(add_exes TARGET_NAME SOURCE_FILE)
         vendor/assimp/include
     )
 
-    target_link_directories(${TARGET_NAME} PRIVATE 
-        vendor/GLFW/lib-mingw-w64
-    )
-
     target_link_libraries(${TARGET_NAME} PRIVATE 
         GLAD
         glfw
@@ -62,12 +58,19 @@ add_executable(imguiGraphicTest
     src/imgui_graphic.cpp
     src/application.cpp
     src/debug_ui.cpp
+    src/scene/BasicScene.cpp
 )
 
 target_link_libraries(imguiGraphicTest
     imgui
+    stb
+    glm
+    assimp
 )
 
 target_include_directories(imguiGraphicTest PRIVATE
     ./include
+    vendor/stb
+    vendor/glm
+    vendor/assimp/include
 )

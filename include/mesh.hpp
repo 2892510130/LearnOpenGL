@@ -2,8 +2,8 @@
 
 #include <string>
 #include <vector>
-
 #include <glm.hpp>
+
 #include "shader.hpp"
 
 #define MAX_BONE_INFLUENCE 4

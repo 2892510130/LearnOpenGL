@@ -9,6 +9,8 @@
 
 #include "config.hpp"
 #include "debug_ui.hpp"
+#include "scene/SceneManager.hpp"
+#include "camera.hpp"
 
 class Application
 {
@@ -41,8 +43,32 @@ private:
         int height
     );
 
+    void process_input(GLFWwindow* window);
+    
+    static void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
+    static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+
+    static Application* get_app(GLFWwindow* window);
+
+    void handle_mouse_move(double xposIn, double yposIn);
+    void handle_scroll(double xoffset, double yoffset);
+    void toggle_cursor_mode();
+
 private:
 
     GLFWwindow* m_Window = nullptr;
     DebugUI m_debug_ui;
+    SceneManager m_scene_manager;
+    Camera m_camera = Camera(glm::vec3(0.0f, 0.0f, 3.0f));
+
+    float m_mixValue = 0.2f;
+    float m_last_time = 0.0f, m_delta_time = 0.0f;
+    float m_lastX =  800.0f / 2.0, m_lastY = 600.0f / 2.0;
+    bool m_firstMouse = true;
+    bool m_blinn = false;
+    bool m_blinnKeyPressed = false;
+    bool m_gammaEnabled = false;
+    bool m_gammaKeyPressed = false;
+    bool m_cursorDisabled = true;
+    bool m_tabKeyPressed = false;
 };

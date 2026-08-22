@@ -5,7 +5,7 @@
 #include <string>
 #include <iostream>
 
-std::string readShaderFile(const std::string &file_path)
+inline std::string readShaderFile(const std::string &file_path)
 {
     std::ifstream file;
     std::stringstream buffer;

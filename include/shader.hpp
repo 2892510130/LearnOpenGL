@@ -1,6 +1,9 @@
 #pragma once
 
 #include <glad/glad.h>
+#include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
+#include <gtc/type_ptr.hpp>
 
 #include "utils.hpp"
 
@@ -8,6 +11,11 @@ class Shader
 {
 public:
     unsigned int ID;
+
+    Shader()
+    {
+        ID = -1;
+    }
 
     // constructor generates the shader on the fly
     Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath = nullptr)
