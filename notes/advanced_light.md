@@ -38,12 +38,12 @@
     - Set the wrap method as `GL_CLAP_BORDER` with a border color of 1.0
     - Force shadow = 0.0 when projCoords.z > 1.0 in the shadow calculation
 - **PCF** (percentage-closer filtering): generate more soft shadow.
-    - Sample the depth map multiple times, and get the mean of them.
+    - Sample the depth map (from nearby positions) multiple times, and get the mean of them.
 
 ## Point Shadows (omnidirectional shadow maps)
 - Instead of a 2D texture we use a cube texture with 6 face to render the depth map of a point light.
 - We can use a geometry shader:
-    - ```
+    - ```cpp
         #version 330 core
         layout (triangles) in;
         layout (triangle_strip, max_vertices=18) out;
@@ -70,7 +70,7 @@
     - This will emit 6 points for a given point.
 - **PCF**:
     - We can sample with samples = 4.0, like below, but it is too expensive
-    - ```
+    - ```cpp
         for(float x = -offset; x < offset; x += offset / (samples * 0.5))
         {
             for(float y = -offset; y < offset; y += offset / (samples * 0.5))
@@ -87,7 +87,7 @@
         shadow /= samples * samples * samples;
         ```
     - Instead we sample from 20 points like this:
-    - ```
+    - ```cpp
         vec3 gridSamplingDisk[20] = vec3[]
         (
             vec3(1, 1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1, 1,  1), 
