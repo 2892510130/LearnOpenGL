@@ -65,10 +65,6 @@ private:
     float m_last_time = 0.0f, m_delta_time = 0.0f;
     float m_lastX =  800.0f / 2.0, m_lastY = 600.0f / 2.0;
     bool m_firstMouse = true;
-    bool m_blinn = false;
-    bool m_blinnKeyPressed = false;
-    bool m_gammaEnabled = false;
-    bool m_gammaKeyPressed = false;
     bool m_cursorDisabled = true;
     bool m_tabKeyPressed = false;
 };

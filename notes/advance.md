@@ -62,11 +62,13 @@ Every face, every triangle has its rotation based on the vertice order, so we ca
     - `glFramebufferTexture2D(target, attachment, textarget, texture, level);` put texture to frame buffer
     - We can put a color texture to it, or depth/scentil. 
     - We can aslo put a depth_scentil texture to it:
-    - ```glTexImage2D(
+    - ```
+        glTexImage2D(
         GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, 800, 600, 0, 
         GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL
         );
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, texture, 0);
+      ```
   - For renderbuffer object
     - It is saved in native OpenGL render format, optimized for **off-screen** render.
     - It is usually write-only and it is good for depth and scentil buffer because we usually do not sample from it.
@@ -80,6 +82,7 @@ Every face, every triangle has its rotation based on the vertice order, so we ca
     - `glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);` to bind it. `glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);` wrap between textures.
     - ```
         glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+      ```
 - And in GLSL shader, we use a `samplerCube`, and use `texture` same as normal textures.
 - `glm::mat4 view = glm::mat4(glm::mat3(camera.GetViewMatrix()));` to remove translation so we can use it as a **Skybox**.
   - Optimization: in shader, we can set the pos z as w, so we get z / w = 1.0, the depth processed will always be 1.0, and depth test will always ignore it. Draw this skybox at last will save us a lot of time.
@@ -125,7 +128,8 @@ Every face, every triangle has its rotation based on the vertice order, so we ca
       - `layout (depth_<condition>) out float gl_FragDepth;`
 - **Interface Block**, looks like struct but with in and out.
 - **Uniform Buffer Object**
-  - Same uniform structer across different shader. The struct layout are default **shared**, which means OpenGL can decide how to layout the structer data in memory, and it makes us hard to get the offset.
+  - pack multiple uniform variables into one buffer
+  - Same uniform structer across different (all) shader. The struct layout are default **shared**, which means OpenGL can decide how to layout the structer data in memory, and it makes us hard to get the offset.
   - So we have **std140** layout, let us have a clear offset of the data, every data has its **Base Alignment**, so we can compute its **Aligned Offset**. $N$ represent 4 bytes. We also have `packed` layout, its layout may be different across different shaders.
     - For scalar, it is $N$.
     - For vec, it is $2N$ or $4N$, so vec3 is $4N$.
@@ -147,7 +151,7 @@ Every face, every triangle has its rotation based on the vertice order, so we ca
             int integer;     // 4               // 148
         }; 
     ```
-  - How can we bind the unifrom buffer object to the uniform block? Using **Binding Point**.
+  - How can we bind the uniform buffer object to the uniform block? Using **Binding Point**.
     - Look at https://learnopengl-cn.github.io/img/04/08/advanced_glsl_binding_points.png. The block is in shader, and buffer object is in our code.
     - ```cpp
         // Binding block to binding point
@@ -194,4 +198,4 @@ Every face, every triangle has its rotation based on the vertice order, so we ca
   - If we find at least one sub point is inside the triangle, then we get the color as triangle color. And in the end we compute the finnal color as [N_outside * background_color (in the color buffer) + N_inside * triangle_color] / N.
 - We can set `glfwWindowHint(GLFW_SAMPLES, 4);` to tell GLFW, and best call `glEnable(GL_MULTISAMPLE);`.
 - **Off-screen MSAA**
-  - Just like what we talk in frame buffer section. Read the code.
+  - Just like what we talk in frame buffer section. Read the code. We first render it in multi sampled frame buffer, then transfer it to a intermedia buffer, than use it as a 2D texture and render it at a quad same as the screen.

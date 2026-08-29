@@ -1,4 +1,5 @@
 #include "application.hpp"
+#include "GLFW/glfw3.h"
 
 Application::Application()
 {
@@ -53,6 +54,7 @@ void Application::init_opengl()
     glfwSetScrollCallback(m_Window, scroll_callback);
 
     glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    // glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
     glfwSwapInterval(1); // vsync
 }
@@ -113,8 +115,11 @@ void Application::run()
         new_frame();
         process_input(m_Window);
 
-        m_debug_ui.RenderUI(m_scene_manager);
+        // Do we need to init it when we switch it even if we do not do the clean up? Maybe reload it is better way?
         m_scene_manager.update(m_delta_time, m_camera);
+        
+        m_debug_ui.RenderUI(m_scene_manager);
+
         render();
     }
 }
@@ -232,7 +237,8 @@ void Application::toggle_cursor_mode()
 
 void Application::process_input(GLFWwindow* window)
 {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) 
+    auto esc_pressed = glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS;
+    if (esc_pressed) 
     {
         glfwSetWindowShouldClose(window, true);
     }
@@ -246,7 +252,7 @@ void Application::process_input(GLFWwindow* window)
     {
         m_tabKeyPressed = false;
     }
-
+    
     ImGuiIO& io = ImGui::GetIO();
 
     if (io.WantCaptureKeyboard)
@@ -275,26 +281,6 @@ void Application::process_input(GLFWwindow* window)
         m_camera.ProcessKeyboard(LEFT, m_delta_time);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         m_camera.ProcessKeyboard(RIGHT, m_delta_time);
-    
-    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && !m_blinnKeyPressed) 
-    {
-        m_blinn = !m_blinn;
-        m_blinnKeyPressed = true;
-    }
-    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_RELEASE) 
-    {
-        m_blinnKeyPressed = false;
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && !m_gammaKeyPressed)
-    {
-        m_gammaEnabled = !m_gammaEnabled;
-        m_gammaKeyPressed = true;
-    }
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE)
-    {
-        m_gammaKeyPressed = false;
-    }
 }
 
 void Application::mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
@@ -325,7 +311,7 @@ void Application::scroll_callback(GLFWwindow* window, double xoffset, double yof
 
 void Application::handle_mouse_move(double xposIn, double yposIn)
 {
-    if (!m_cursorDisabled)
+     if (!m_cursorDisabled)
         return;
 
     float xpos = static_cast<float>(xposIn);

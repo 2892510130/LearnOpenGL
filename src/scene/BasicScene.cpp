@@ -1,8 +1,6 @@
 #include "scene/BasicScene.hpp"
 #include "config.hpp"
 
-#include <iostream>
-
 void BasicScene::init()
 {
     glEnable(GL_DEPTH_TEST);
@@ -62,6 +60,11 @@ void BasicScene::update(float deltaTime, Camera &camera)
 void BasicScene::render()
 {
     m_model.Draw(m_shader);
+}
+
+void BasicScene::render_ui()
+{
+
 }
 
 void BasicScene::cleanup()

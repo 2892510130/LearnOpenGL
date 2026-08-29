@@ -1,5 +1,7 @@
 #include "texture.hpp"
 
+#include <iostream>
+
 Texture::Texture(const std::string& texturePath, const TextureProperties &textureProperties)
 : m_texturePath(texturePath), m_properties(textureProperties)
 {

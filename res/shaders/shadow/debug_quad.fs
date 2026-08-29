@@ -14,6 +14,7 @@ float LinearizeDepth(float depth)
     return (2.0 * near_plane * far_plane) / (far_plane + near_plane - z * (far_plane - near_plane));	
 }
 
+// This is for the visual debug of the shadow map, when using projection light, do the linearize.
 void main()
 {             
     float depthValue = texture(depthMap, TexCoords).r;

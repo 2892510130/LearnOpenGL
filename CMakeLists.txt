@@ -3,10 +3,13 @@ cmake_minimum_required(VERSION 3.26)
 project(LearnOpenGL)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(vendor/glfw)
 add_subdirectory(vendor/glad)
@@ -58,7 +61,10 @@ add_executable(imguiGraphicTest
     src/imgui_graphic.cpp
     src/application.cpp
     src/debug_ui.cpp
+    src/texture.cpp
     src/scene/BasicScene.cpp
+    src/scene/ShadowScene.cpp
+    src/scene/PointShadowScene.cpp
 )
 
 target_link_libraries(imguiGraphicTest

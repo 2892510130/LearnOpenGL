@@ -1,7 +1,11 @@
 #pragma once
 
+#include <memory>
+
 #include "Scene.hpp"
 #include "BasicScene.hpp"
+#include "ShadowScene.hpp"
+#include "PointShadowScene.hpp"
 
 class SceneManager {
 public:
@@ -9,6 +13,8 @@ public:
     
     void registerScenes() {
         m_scenes.push_back(std::make_unique<BasicScene>());
+        m_scenes.push_back(std::make_unique<ShadowScene>());
+        m_scenes.push_back(std::make_unique<PointShadowScene>());
     }
     
     void switchTo(int index) {
@@ -32,6 +38,12 @@ public:
     void render() {
         if (m_currentIndex != -1) {
             m_scenes[m_currentIndex]->render();
+        }
+    }
+
+    void render_ui() {
+        if (m_currentIndex != -1) {
+            m_scenes[m_currentIndex]->render_ui();
         }
     }
     

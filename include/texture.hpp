@@ -3,7 +3,6 @@
 #include <string>
 #include <glad/glad.h>
 #include <stb_image.h>
-#include <iostream>
 
 enum class TextureType {
     Diffuse,
@@ -17,7 +16,7 @@ enum class TextureType {
 
 struct TextureProperties {
     bool gammaCorrection = false;
-    bool flipImage = true;
+    bool flipImage = false;
     bool generateMipmaps = true;
     GLenum wrapS = GL_REPEAT;
     GLenum wrapT = GL_REPEAT;
@@ -28,6 +27,9 @@ struct TextureProperties {
 
 class Texture {
 public:
+    unsigned int m_ID;
+
+
     Texture() = default;
     Texture(const std::string& texturePath, const TextureProperties &textureProperties);
     ~Texture();
@@ -46,7 +48,6 @@ public:
     }
 
 private:
-    unsigned int m_ID;
     std::string m_texturePath;
     TextureProperties m_properties;
 

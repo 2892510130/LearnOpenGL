@@ -90,7 +90,7 @@ first one is FOV.
   - **Ambient Lighting**: enviroment light, just times a little number.
   - **Diffuse Lighting**: direction effect of the light source. More direct to the light, more light. We need the normal vector of the object, and the light vector, we can calculate dot product.
     - We need to get the light vector, which is `lightPos - fragPos`, both in the world coordinate
-    - Do we need to put normal vector in the world coordinate? Yes, but we need to use **Normal Matrix**, a special matrix, because if we use normal matrix then the vector will not be perpendicular to the plain. `Normal = mat3(transpose(inverse(model))) * aNormal;` but remember we should not do it in shader, we should it do it in CPU prehead!
+    - Do we need to put normal vector in the world coordinate? Yes, but we need to use **Normal Matrix**, a special matrix, because if we use normal model matrix (because it may contain scale) then the vector will not be perpendicular to the plain. `Normal = mat3(transpose(inverse(model))) * aNormal;` but remember we should not do it in shader, we should it do it in CPU prehead!
   - **Specular Lighting**: light spot. If we view it right at the reflection line, it will be most light.
 - If we do the light in the vertex shader rather than the fragment shader, we call it **Gouraud Shading**, which is blur. Because in this way the light is calculate on vertex then filter between. In Phong model, the normal and pos are filtered but the color is not.
 - More people do it in view space rather than world space. See bottom.

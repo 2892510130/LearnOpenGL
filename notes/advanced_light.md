@@ -25,5 +25,75 @@
   - https://blog.johnnovak.net/2016/09/21/what-every-coder-should-know-about-gamma/
   - https://www.wolfire.com/blog/2010/02/Gamma-correct-lighting/
   
-## Shadow Mapping
-- We can use the same technique in depth map, render from the light pos, then check the depth to see whether it is in the shadow.
+## Shadow Mapping (directional shadow mapping)
+- We can use the same technique in depth map, render from the light pos to get the depth, then check the depth to see whether it is in the shadow.
+    - use `texture(depthMap, fragToLight)` get the closest depth and compare it with `length(fragToLight)` which is the current depth
+- **Shadow Acne**: due to the resolution of the depth map, sometime we get this unreal shadow
+    - See https://learnopengl-cn.github.io/img/05/03/01/shadow_mapping_acne_diagram.png
+    - So we need a small offset to fix this, this offset bias can be written as `float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);`, and this two number will need you to set based on the effect
+- **Peter Panning**: when using the offset, we modify the depth so maybe we will see some frag flying above the plane. Just see one corner of the cube.
+    - We can use **front face culling** to fix it. See https://learnopengl-cn.github.io/img/05/03/01/shadow_mapping_culling.png.
+    - This only works for things that have closed inner space like a cube, not works for plane.
+- **Over Sample**: The oversampling issue causes areas outside the light's frustum to be incorrectly treated as shadowed
+    - Set the wrap method as `GL_CLAP_BORDER` with a border color of 1.0
+    - Force shadow = 0.0 when projCoords.z > 1.0 in the shadow calculation
+- **PCF** (percentage-closer filtering): generate more soft shadow.
+    - Sample the depth map multiple times, and get the mean of them.
+
+## Point Shadows (omnidirectional shadow maps)
+- Instead of a 2D texture we use a cube texture with 6 face to render the depth map of a point light.
+- We can use a geometry shader:
+    - ```
+        #version 330 core
+        layout (triangles) in;
+        layout (triangle_strip, max_vertices=18) out;
+
+        uniform mat4 shadowMatrices[6];
+
+        out vec4 FragPos; // FragPos from GS (output per emitvertex)
+
+        void main()
+        {
+            for(int face = 0; face < 6; ++face)
+            {
+                gl_Layer = face; // built-in variable that specifies to which face we render.
+                for(int i = 0; i < 3; ++i) // for each triangle vertex
+                {
+                    FragPos = gl_in[i].gl_Position;
+                    gl_Position = shadowMatrices[face] * FragPos;
+                    EmitVertex();
+                }    
+                EndPrimitive();
+            }
+        }
+        ```
+    - This will emit 6 points for a given point.
+- **PCF**:
+    - We can sample with samples = 4.0, like below, but it is too expensive
+    - ```
+        for(float x = -offset; x < offset; x += offset / (samples * 0.5))
+        {
+            for(float y = -offset; y < offset; y += offset / (samples * 0.5))
+            {
+                for(float z = -offset; z < offset; z += offset / (samples * 0.5))
+                {
+                    float closestDepth = texture(depthMap, fragToLight + vec3(x, y, z)).r; 
+                    closestDepth *= far_plane;   // undo mapping [0;1]
+                    if(currentDepth - bias > closestDepth)
+                        shadow += 1.0;
+                }
+            }
+        }
+        shadow /= samples * samples * samples;
+        ```
+    - Instead we sample from 20 points like this:
+    - ```
+        vec3 gridSamplingDisk[20] = vec3[]
+        (
+            vec3(1, 1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1, 1,  1), 
+            vec3(1, 1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1, 1, -1),
+            vec3(1, 1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1, 1,  0),
+            vec3(1, 0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1, 0, -1),
+            vec3(0, 1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0, 1, -1)
+        );
+        ```
