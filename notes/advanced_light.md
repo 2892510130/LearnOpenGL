@@ -97,3 +97,60 @@
             vec3(0, 1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0, 1, -1)
         );
         ```
+
+## Normal Map
+- Using per-fragment normals instead of per-surface normals. Also known as **Bump Mapping**.
+    - Remember that OpenGL is left bottom the original point, so OpenGL will flip it, this will mess up the normal texture when loading
+    - In the code, we read a pre-fliped picture but in general the picture is not fliped in advance.
+- **Tagnent Space**
+    - But we will not use the x, y, z in normal texture, because it relatives to the surface. 
+    - So we need a coordinate system which is relative to the indivisual **triangles**. We called it **TBN** matrix, where T is Tagnent, B is Bitagnent, and N for Normal.
+    - For visual understand look at https://learnopengl.com/img/advanced-lighting/normal_mapping_surface_edges.png.
+    - What we have: three points of triangles $P_1, P_2, P_3$ and there texture coordinate $(u_1, v_1), (u_2, v_2), (u_3, v_3)$. T is the direction of $u$ changes, and B for $v$ changes so we have:
+        - $$
+            E_{12} = P_2 - P_1 = \Delta u_2 T + \Delta v_2 B, \quad \Delta u_2 = u_2 - u_1 \\
+            E_{13} = P_3 - P_1 = \Delta u_3 T + \Delta v_3 B, \quad \Delta v_3 = v_3 - v_1
+        $$
+        - $$
+            \begin{bmatrix} T_x & T_y & T_z \\ B_x & B_y & B_z \end{bmatrix} 
+            = \frac{1}{\Delta U_1 \Delta V_2 - \Delta U_2 \Delta V_1} 
+            \begin{bmatrix} \Delta V_2 & -\Delta V_1 \\ -\Delta U_2 & \Delta U_1 \end{bmatrix} 
+            \begin{bmatrix} E_{1x} & E_{1y} & E_{1z} \\ E_{2x} & E_{2y} & E_{2z} \end{bmatrix}
+        $$
+        - Then the TBN matrix is [T, B, N], each one of the vec is column vec
+    - There are two ways to use this TBN matrix
+        - Use it in fragment shader, transform the normals to world space
+        - Use it in vertex shader, using the inverse TBN (it is orthogonal so we just use **transpose**) to transform the lightDir, viewPos and fragPos to the tagnent space
+        - Why the second way maybe better? Because fragment shader has more calculations to do, as vertex shader only works on vertex points
+- Normal map is good for preformance boost, we can reduce a lot of vertices and still get good resolution.
+- After model transform, T and N may not perpendicular, so we can use a trick called **Gram-Schmidt process** to re-orthogonalize it
+    - `T = normalize(T - dot(T, N) * N);` then calculate B with `vec3 B = cross(N, T);`
+
+## Parallax Mapping (视差贴图)
+- One of the displacement mapping techniques that displace or offset vertices based on geometrical information stored inside a texture.
+- So we also have a height map (or a depth map), we have fragPos $A$ that is on the viewDir $\bar V$, then we scale it with $\bar P = H(A) \bar V$ (or negative for depth map) to get $H(P)$, see at https://learnopengl.com/img/advanced-lighting/parallax_mapping_depth.png.
+    - ```cpp
+        vec2 ParallaxMapping(vec2 texCoords, vec3 viewDir)
+        { 
+            float height =  texture(depthMap, texCoords).r;    
+            vec2 p = viewDir.xy / viewDir.z * (height * height_scale);
+            return texCoords - p;    
+        }
+        ```
+    - We can also cancle this division of z to make it more stable, the division will make it more real from a large angle, but may also bring some torque
+- **Steep Parallax Mapping**: we sample multiple times
+    - We divide $n$ samples of height (depth) uniformly from 0.0 to 1.0, then we walk through the viewDir from top to bottom, compare the layer height and the cross point height, until the cross point height higher than the layer height.
+    - Then we lerp it with last cross point height to get the final depth (this is called **Parallax Occlusion Mapping**)
+
+## HDR (high dynamic range)
+- Allow fragment color temporarily exceed 1.0. We allow for a much larger range of color values to render to, collecting a large range of dark and bright details of a scene, and at the end we transform all the HDR values back to the low dynamic range (LDR) of [0.0, 1.0].
+    - **tone mapping**: HDR -> LDR
+    - When the internal format of a framebuffer's color buffer is specified as `GL_RGB16F`, `GL_RGBA16F`, `GL_RGB32F`, or `GL_RGBA32F` the framebuffer is known as a floating point framebuffer that can store floating point values outside the default range of 0.0 and 1.0. 
+
+
+
+
+
+
+
+

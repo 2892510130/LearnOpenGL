@@ -6,6 +6,8 @@
 #include "BasicScene.hpp"
 #include "ShadowScene.hpp"
 #include "PointShadowScene.hpp"
+#include "NormalMapScene.hpp"
+#include "ParallaxMapScene.hpp"
 
 class SceneManager {
 public:
@@ -15,6 +17,8 @@ public:
         m_scenes.push_back(std::make_unique<BasicScene>());
         m_scenes.push_back(std::make_unique<ShadowScene>());
         m_scenes.push_back(std::make_unique<PointShadowScene>());
+        m_scenes.push_back(std::make_unique<NormalMapScene>());
+        m_scenes.push_back(std::make_unique<ParallaxMapScene>());
     }
     
     void switchTo(int index) {

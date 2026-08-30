@@ -65,6 +65,8 @@ add_executable(imguiGraphicTest
     src/scene/BasicScene.cpp
     src/scene/ShadowScene.cpp
     src/scene/PointShadowScene.cpp
+    src/scene/NormalMapScene.cpp
+    src/scene/ParallaxMapScene.cpp
 )
 
 target_link_libraries(imguiGraphicTest
