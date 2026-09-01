@@ -56,7 +56,7 @@ void Application::init_opengl()
     glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     // glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
-    glfwSwapInterval(1); // vsync
+    // glfwSwapInterval(1); // vsync
 }
 
 void Application::init_imgui()
@@ -118,7 +118,7 @@ void Application::run()
         // Do we need to init it when we switch it even if we do not do the clean up? Maybe reload it is better way?
         m_scene_manager.update(m_delta_time, m_camera);
         
-        m_debug_ui.RenderUI(m_scene_manager);
+        m_debug_ui.RenderUI(m_scene_manager, m_delta_time);
 
         render();
     }

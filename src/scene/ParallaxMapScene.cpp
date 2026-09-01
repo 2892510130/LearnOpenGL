@@ -1,7 +1,6 @@
 #include "scene/ParallaxMapScene.hpp"
 #include "camera.hpp"
 #include "imgui.h"
-#include "texture.hpp"
 #include "config.hpp"
 
 #include <GLFW/glfw3.h>

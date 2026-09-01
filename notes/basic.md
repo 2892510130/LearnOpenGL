@@ -2,6 +2,7 @@
 - GLM matrix are mat[col][row], first is column not row
 - First bind the VAO then bind the VBO
 - glfwPollEvents will checkout the callback array, which is updated by operating system
+- Remember that vertex shader works on one vertex, and fragment shader works on one pixel.
 
 ## Overall Notes
 - OpenGL is a huge State Machine, its states are called **OpenGL Context**, We will generate, bind, set and unbind a **Object**.

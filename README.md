@@ -1,6 +1,7 @@
 ## Important Things
 - glBindVertexArray must after the glUseProgram, because glUseProgram will tell 
 OpenGL Pipeline from now on, all the draw are using this program  
+- Remember that vertex shader works on one vertex, and fragment shader works on one pixel.
 
 ## Critic Points to better Understanding
 
@@ -17,6 +18,9 @@ Coordinate System: https://learnopengl-cn.github.io/img/01/08/coordinate_systems
 1. Why gl_Position is (x, y, z, w)?
    Becuase we need represent infinite, w -> 1.0 if a point, w -> 0.0 is a direction/vector.
    The real positon is (x/w, y/w, z/w).
+2. What the glViewport do?
+   1. NDC [-1, 1] -> Viewport -> Screen, consider a object that is sizeof 0.2x0.2 in NDC, and viewport is 800x600, than its size is 160x120.
+   2. When we resize the window with glViewport to 1000*1000, then the size of the object is 200x200
 
 
 ## The Pipeline

@@ -8,6 +8,10 @@
 #include "PointShadowScene.hpp"
 #include "NormalMapScene.hpp"
 #include "ParallaxMapScene.hpp"
+#include "HDRScene.hpp"
+#include "BloomScene.hpp"
+#include "DeferRendingScene.hpp"
+#include "SSAOScene.hpp"
 
 class SceneManager {
 public:
@@ -19,6 +23,10 @@ public:
         m_scenes.push_back(std::make_unique<PointShadowScene>());
         m_scenes.push_back(std::make_unique<NormalMapScene>());
         m_scenes.push_back(std::make_unique<ParallaxMapScene>());
+        m_scenes.push_back(std::make_unique<HDRScene>());
+        m_scenes.push_back(std::make_unique<BloomScene>());
+        m_scenes.push_back(std::make_unique<DeferRendingScene>());
+        m_scenes.push_back(std::make_unique<SSAOScene>());
     }
     
     void switchTo(int index) {
