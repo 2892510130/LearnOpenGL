@@ -12,6 +12,7 @@
 #include "BloomScene.hpp"
 #include "DeferRendingScene.hpp"
 #include "SSAOScene.hpp"
+#include "PBRScene.hpp"
 
 class SceneManager {
 public:
@@ -27,6 +28,7 @@ public:
         m_scenes.push_back(std::make_unique<BloomScene>());
         m_scenes.push_back(std::make_unique<DeferRendingScene>());
         m_scenes.push_back(std::make_unique<SSAOScene>());
+        m_scenes.push_back(std::make_unique<PBRScene>());
     }
     
     void switchTo(int index) {

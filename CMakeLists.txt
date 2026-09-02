@@ -71,6 +71,7 @@ add_executable(imguiGraphicTest
     src/scene/BloomScene.cpp
     src/scene/DeferRendingScene.cpp
     src/scene/SSAOScene.cpp
+    src/scene/PBRScene.cpp
 )
 
 target_link_libraries(imguiGraphicTest
