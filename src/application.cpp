@@ -118,7 +118,7 @@ void Application::run()
         // Do we need to init it when we switch it even if we do not do the clean up? Maybe reload it is better way?
         m_scene_manager.update(m_delta_time, m_camera);
         
-        m_debug_ui.RenderUI(m_scene_manager, m_delta_time);
+        m_debug_ui.RenderUI(m_scene_manager);
 
         render();
     }
@@ -243,12 +243,12 @@ void Application::process_input(GLFWwindow* window)
         glfwSetWindowShouldClose(window, true);
     }
 
-    if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS && !m_tabKeyPressed)
+    if (glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS && !m_tabKeyPressed)
     {
         toggle_cursor_mode();
         m_tabKeyPressed = true;
     }
-    if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_RELEASE)
+    if (glfwGetKey(window, GLFW_KEY_F1) == GLFW_RELEASE)
     {
         m_tabKeyPressed = false;
     }

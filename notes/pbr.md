@@ -90,4 +90,49 @@
 - The .hdr format, RGB each with 1 byte (8 bits), and the E (exponential term) with 1 byte, total 32 bits (compare with RGB = 3 * 32 = 96bits).
     - with stb_image.h we use `stbi_loadf` load the 32bits data back to normal 96bits data.
     - environment map is projected from a sphere onto a flat plane such that we can more easily store the environment into a single image known as an **equirectangular map**.
-    - We can directly sample from this map, but that needs some triangle math, which are expensive. So we first transform it into cube map.
+    - We can directly sample from this map, but that needs some triangle math, which are expensive. So we first transform it into cube map (precompute it).
+- Then we need do the convolution on it, transform this large env map to smaller conv map (irradiance map)
+    - For each world position, we take it as normal vector, and build a hemisphere around it, sample around it (remember cube map use vector to sample!!)
+    - $$
+        \begin{aligned}
+            L_o(p,\phi_o, \theta_o) &= 
+        k_d\frac{c}{\pi} \int_{\phi = 0}^{2\pi} \int_{\theta = 0}^{\frac{1}{2}\pi} L_i(p,\phi_i, \theta_i) \cos(\theta) \sin(\theta)  d\phi d\theta \\
+        &\rightarrow k_d\frac{c\pi}{n_1 n_2} \sum_{m=0}^{n_1}\sum_{n=0}^{n_2} L_i(p,\phi_m, \theta_n) \cos(\theta_n)\sin(\theta_n)
+        \end{aligned}
+      $$
+    - ```cpp
+        vec3 kS = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness); // split to diffuse and specular
+        vec3 kD = 1.0 - kS; // the diffuse part
+        vec3 irradiance = texture(irradianceMap, N).rgb; // the convotion map
+        vec3 diffuse    = irradiance * albedo; // the outgoing irradiance, albedo is the material's color
+        vec3 ambient    = (kD * diffuse) * ao; // ambient occlusion
+        ```
+
+## Specular IBL
+- Now let's consider the specular part of the equation with **split sum approximation**.
+    - $$
+        \begin{aligned}
+            &\int\limits_{\Omega} \frac{DFG}{4(\omega_o \cdot n)(\omega_i \cdot n)} L_i(p,\omega_i) n \cdot \omega_i d\omega_i \\
+            &\approx \int\limits_{\Omega} L_i(p,\omega_i) n \cdot \omega_i d\omega_i 
+            \int\limits_{\Omega} \frac{DFG}{4(\omega_o \cdot n)(\omega_i \cdot n)} n \cdot \omega_i d\omega_i
+        \end{aligned}
+        $$
+- The left side is called **pre-filtered environment map**, and we need to generate multiple cube map for different roughness (in the minimap style)
+    - How can we sample data if specular light need consider in and out light, as well as view direction?
+        - We just let out light = normal = view direction, simplify it. And we do **importance sample** around normal vector (these sample are inside so-called **specular lobe**).
+    - Remember to `glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);` that make it filter between cube's different faces.
+    - We use **Monte Carlo integration** to sample (if we use random sample), but we do a importance sample so we need biased distribution of samples (by using **low-discrepancy sequences**), this method is called **Quasi-Monte Carlo**, it converges faster.
+        - Note that for WebGL and some other OpenGL, we can not get the sequence by bit operations, we need use loops (though it is slow).
+        - $$ \int_a^b f(x) dx = \frac{1}{N} \sum\limits_{0}^{N-1} \frac{f_i}{p_i}, \quad p = \text{probility density function}$$
+        - ```cpp
+            vec2 Xi = Hammersley(i, SAMPLE_COUNT);           // using low-discrepancy sequences
+            vec3 H  = ImportanceSampleGGX(Xi, N, roughness); // sample around N (where it is worldPos, a vector to sample from cubemap), this consider the roughness influence on the lobe size
+            vec3 L  = normalize(2.0 * dot(V, H) * H - V);    // reflection light
+            ```
+        - There maybe problem that for low minimap we get light dots that is not look real
+            - We can make the envMap generate minimaps
+            - We than can use this L to sample from the envMap, but we have to consider roughness, if it is small, the lobe is narrow, otherwise large.
+            - `float mipLevel = roughness == 0.0 ? 0.0 : 0.5 * log2(saSample / saTexel); `
+            - `saSample` is how much area this sample takes, `saTexel` is how much area a texel take from sphere
+            - `log2` is because different level of minimap are 4x smaller, then $\log_4 x = 0.5 * \log_2 x$
+- The right side, we assume all direction of the incoming irradiance are 1.0, then we can precompute it into a look up table called **BRDF integration**, or **LUT**.

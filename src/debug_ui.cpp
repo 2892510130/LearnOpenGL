@@ -2,7 +2,7 @@
 #include "imgui.h"
 #include <malloc.h>
 
-void DebugUI::RenderUI(SceneManager &scene_manager, float delta_time)
+void DebugUI::RenderUI(SceneManager &scene_manager)
 {
     ImGui::Begin("Scene Selector");
     
@@ -19,16 +19,8 @@ void DebugUI::RenderUI(SceneManager &scene_manager, float delta_time)
         ImGui::TreePop();
     }
 
-    float currentFPS = 1 / delta_time;
-    if (m_smooth_fps == 0.0f)
-    {
-        m_smooth_fps = currentFPS;
-    }
-    else
-    {
-        m_smooth_fps = m_smooth_fps * (1 - m_alpha) + currentFPS * m_alpha;
-    }
-    ImGui::Text("FPS: %.2f", m_smooth_fps);
+    auto &io = ImGui::GetIO();
+    ImGui::Text("FPS: %.2f", io.Framerate); // rolling average over 60 frames
 
     if (scene_manager.getCurrentIndex() != -1) {
         ImGui::Separator();

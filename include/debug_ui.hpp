@@ -12,5 +12,5 @@ private:
 public:
     DebugUI() = default;
     ~DebugUI() = default;
-    void RenderUI(SceneManager &scene_manager, float delta_time);
+    void RenderUI(SceneManager &scene_manager);
 };
