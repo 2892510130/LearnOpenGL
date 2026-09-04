@@ -103,7 +103,7 @@ vec2 IntegrateBRDF(float NdotV, float roughness)
     }
     A /= float(SAMPLE_COUNT);
     B /= float(SAMPLE_COUNT);
-    return vec2(A, B);
+    return vec2(A, B); // F_0 * A + B will be in light.fs or texture.fs
 }
 // ----------------------------------------------------------------------------
 void main() 

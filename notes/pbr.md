@@ -43,12 +43,12 @@
         - The left side is diffuse part known as **Lambertian diffuse**, which $f_{lambert} = c / \pi$, $\pi$ is for normalization, $c$ being the albedo or surface color.
         - The specular part is more advanced
             - $$f_{CookTorrance} = \frac{DFG}{4(\omega_o \cdot n)(\omega_i \cdot n)}$$
-            - N stands for **Normal distribution function**: approximates the amount the surface's microfacets are aligned to the halfway vector, influenced by the roughness of the surface
+            - D stands for **Normal distribution function**: approximates the amount the surface's microfacets are aligned to the halfway vector, influenced by the roughness of the surface
             - G stands for **Geometry function**: describes the self-shadowing property of the microfacets. 
             - F stands for **Fresnel equation**: The Fresnel equation describes the ratio of light that gets reflected over the light that gets refracted at different surface angles.
             - Look at https://graphicrants.blogspot.com/2013/08/specular-brdf-reference.html for different functions of these.
     - For normal distribution function we use **Trowbridge-Reitz GGX**
-        - $$NDF_{GGX TR}(n, h, \alpha) = \frac{\alpha^2}{\pi((n \cdot h)^2 (\alpha^2 - 1) + 1)^2}$$
+        - $$D_{GGX TR}(n, h, \alpha) = \frac{\alpha^2}{\pi((n \cdot h)^2 (\alpha^2 - 1) + 1)^2}$$
         - where $\alpha$ is the roughness parameter
     - For geometry function we use **Schlick-GGX**
         - $$G_{SchlickGGX}(n, v, k) = \frac{n \cdot v} {(n \cdot v)(1 - k) + k }$$
@@ -80,6 +80,18 @@
             L_i(p,\omega_i) n \cdot \omega_i d\omega_i
             $$
 
+## Some math
+- We know that D is to sample the halfway vector H given an micro-surface area, it does not contains a solid angle, but we need to sample from solid angle perspective, so:
+    - $$ p(H) = D(H) (N \cdot H) $$
+    - $dA_{projected} = (N \cdot H) dA$, that is where this $N \cdot H$ comes from
+- However $\omega_i$ is the light direction L, so we need $p(L)$, where $L = $
+    - $$ p(L) =  p(H) \| \frac{dH}{dL} \| = \frac{p(H)}{4 (V \cdot H)} = \frac{D(H) (N \cdot H)}{4 (V \cdot H)}$$
+- Then using monte carlo method
+    - $$ \int\limits_{\Omega} f_r n \omega_i d\omega_i \approx \frac{1}{N} \sum_{i=0}^{N-1} \frac{f_r N L}{p(L)} $$
+- We use **Monte Carlo integration** to sample (if we use random sample), but we do a importance sample so we need biased distribution of samples (by using **low-discrepancy sequences**), this method is called **Quasi-Monte Carlo**, it converges faster.
+    - Note that for WebGL and some other OpenGL, we can not get the sequence by bit operations, we need use loops (though it is slow).
+    - $$ \int_a^b f(x) dx = \frac{1}{N} \sum\limits_{0}^{N-1} \frac{f_i}{p_i}, \quad p = \text{probility density function}$$
+
 ## Diffuse irradiance
 - Recall the final equation, we can seperate it into two part, the left one is for diffuse light (in this section we only consider this).
     - $$L_o(p,\omega_o) = k_d\frac{c}{\pi} \int\limits_{\Omega} L_i(p,\omega_i) n \cdot \omega_i  d\omega_i$$
@@ -97,7 +109,8 @@
         \begin{aligned}
             L_o(p,\phi_o, \theta_o) &= 
         k_d\frac{c}{\pi} \int_{\phi = 0}^{2\pi} \int_{\theta = 0}^{\frac{1}{2}\pi} L_i(p,\phi_i, \theta_i) \cos(\theta) \sin(\theta)  d\phi d\theta \\
-        &\rightarrow k_d\frac{c\pi}{n_1 n_2} \sum_{m=0}^{n_1}\sum_{n=0}^{n_2} L_i(p,\phi_m, \theta_n) \cos(\theta_n)\sin(\theta_n)
+        &\rightarrow k_d\frac{c\pi}{n_1 n_2} \sum_{m=0}^{n_1}\sum_{n=0}^{n_2} L_i(p,\phi_m, \theta_n) \cos(\theta_n)\sin(\theta_n) \\
+        & \leftarrow [n \cdot \omega_i] [d\omega_i] = [\cos(\theta)] [\sin(\theta) d\phi d\theta]
         \end{aligned}
       $$
     - ```cpp
@@ -109,30 +122,56 @@
         ```
 
 ## Specular IBL
-- Now let's consider the specular part of the equation with **split sum approximation**.
+- Now let's consider the specular part of the equation with **split sum approximation**. In Epic game original paper, they do the monte carlo first than do the split, the split below is just for understanding, how we seperate into two part with approximation.
     - $$
         \begin{aligned}
             &\int\limits_{\Omega} \frac{DFG}{4(\omega_o \cdot n)(\omega_i \cdot n)} L_i(p,\omega_i) n \cdot \omega_i d\omega_i \\
             &\approx \int\limits_{\Omega} L_i(p,\omega_i) n \cdot \omega_i d\omega_i 
-            \int\limits_{\Omega} \frac{DFG}{4(\omega_o \cdot n)(\omega_i \cdot n)} n \cdot \omega_i d\omega_i
+            \int\limits_{\Omega} \frac{DFG}{4(\omega_o \cdot n)(\omega_i \cdot n)} n \cdot \omega_i d\omega_i \\
+            &= \text{pre-filter (given roughness, the reflection map of enviroment)} \times \text{LUT (how to weight these lights)}
         \end{aligned}
         $$
-- The left side is called **pre-filtered environment map**, and we need to generate multiple cube map for different roughness (in the minimap style)
+- The left side is called **pre-filtered environment map**, and we need to generate multiple cube map for different roughness (in the minimap style), and it is not in a mote carlo way, it is weighted mean of light.
     - How can we sample data if specular light need consider in and out light, as well as view direction?
         - We just let out light = normal = view direction, simplify it. And we do **importance sample** around normal vector (these sample are inside so-called **specular lobe**).
     - Remember to `glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);` that make it filter between cube's different faces.
-    - We use **Monte Carlo integration** to sample (if we use random sample), but we do a importance sample so we need biased distribution of samples (by using **low-discrepancy sequences**), this method is called **Quasi-Monte Carlo**, it converges faster.
-        - Note that for WebGL and some other OpenGL, we can not get the sequence by bit operations, we need use loops (though it is slow).
-        - $$ \int_a^b f(x) dx = \frac{1}{N} \sum\limits_{0}^{N-1} \frac{f_i}{p_i}, \quad p = \text{probility density function}$$
-        - ```cpp
-            vec2 Xi = Hammersley(i, SAMPLE_COUNT);           // using low-discrepancy sequences
-            vec3 H  = ImportanceSampleGGX(Xi, N, roughness); // sample around N (where it is worldPos, a vector to sample from cubemap), this consider the roughness influence on the lobe size
-            vec3 L  = normalize(2.0 * dot(V, H) * H - V);    // reflection light
-            ```
-        - There maybe problem that for low minimap we get light dots that is not look real
-            - We can make the envMap generate minimaps
-            - We than can use this L to sample from the envMap, but we have to consider roughness, if it is small, the lobe is narrow, otherwise large.
-            - `float mipLevel = roughness == 0.0 ? 0.0 : 0.5 * log2(saSample / saTexel); `
-            - `saSample` is how much area this sample takes, `saTexel` is how much area a texel take from sphere
-            - `log2` is because different level of minimap are 4x smaller, then $\log_4 x = 0.5 * \log_2 x$
-- The right side, we assume all direction of the incoming irradiance are 1.0, then we can precompute it into a look up table called **BRDF integration**, or **LUT**.
+    - ```cpp
+        // generates a sample vector that's biased towards the preferred alignment direction (importance sampling).
+        vec2 Xi = Hammersley(i, SAMPLE_COUNT);
+        vec3 H = ImportanceSampleGGX(Xi, N, roughness);
+        vec3 L  = normalize(2.0 * dot(V, H) * H - V); // reflection light
+
+        float NdotL = max(dot(N, L), 0.0);
+        if(NdotL > 0.0)
+        {
+            float mipLevel = get_mip_level(N, H, V, roughness, SAMPLE_COUNT); // fix the problem of light dots
+            prefilteredColor += textureLod(environmentMap, L, mipLevel).rgb * NdotL;
+            totalWeight      += NdotL;
+        }
+        ```
+    - There maybe problem that for low minimap we get light dots that is not look real
+        - We can make the envMap generate minimaps
+        - We than can use this L to sample from the envMap, but we have to consider roughness, if it is small, the lobe is narrow, otherwise large.
+        - `float mipLevel = roughness == 0.0 ? 0.0 : 0.5 * log2(saSample / saTexel); `
+        - `saSample` is how much area this sample takes, `saTexel` is how much area a texel take from sphere
+        - `log2` is because different level of minimap are 4x smaller, then $\log_4 x = 0.5 * \log_2 x$
+- The right side, we assume all direction of the incoming irradiance are 1.0, then we can precompute it into a look up table called **BRDF integration**, or **LUT**, we use a monte carlo method to get it.
+    - $$
+        \begin{aligned}
+            &\int\limits_{\Omega} f_r(p, \omega_i, \omega_o) n \cdot \omega_i d\omega_i \\
+            &= \int\limits_{\Omega} f_r(p, \omega_i, \omega_o) \frac{F(\omega_o, h)}{F(\omega_o, h)} n \cdot \omega_i d\omega_i \\
+            &= \int\limits_{\Omega} \frac{f_r(p, \omega_i, \omega_o)}{F(\omega_o, h)} (F_0 + (1 - F_0){(1 - \omega_o \cdot h)}^5)  n \cdot \omega_i d\omega_i \\
+            &= F_0 \int\limits_{\Omega} \bar f_r(p, \omega_i, \omega_o)(1 - {(1 - \omega_o \cdot h)}^5)  n \cdot \omega_i d\omega_i \\
+            &+ \int\limits_{\Omega} \bar f_r(p, \omega_i, \omega_o) {(1 - \omega_o \cdot h)}^5  n \cdot \omega_i d\omega_i
+        \end{aligned}
+        $$
+    - Note that as $f_r(p, \omega_i, \omega_o)$ already contains a term for $F$ they both cancel out, removing $F$ from $f_r$ we get $\bar f_r$.
+    - $$ \bar f_r(p, \omega_i, \omega_o) = \frac{DG}{4(\omega_o \cdot n)(\omega_i \cdot n)} $$
+    - $$
+        \begin{aligned}
+            &\int\limits_{\Omega} \bar f_r(p, \omega_i, \omega_o) {(1 - \omega_o \cdot h)}^5  n \cdot \omega_i d\omega_i \\
+            &\approx \frac{1}{N} \sum_{i=0}^{N-1} \frac{\bar f_r(p, L, V) {(1 - V \cdot H)}^5 N \cdot L}{p(L)} \\
+            &= \frac{1}{N} \sum_{i=0}^{N-1} \frac{DG {(1 - V \cdot H)}^5 (N \cdot L) (4 (V \cdot H))}{D (N \cdot H) (4 (V \cdot N)(L \cdot N))} \\
+            &= \frac{1}{N} \sum_{i=0}^{N-1} \frac{G (V \cdot H)}{(N \cdot H)(V \cdot N)}
+        \end{aligned}
+        $$ 

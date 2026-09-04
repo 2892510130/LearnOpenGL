@@ -13,6 +13,7 @@
 #include "DeferRendingScene.hpp"
 #include "SSAOScene.hpp"
 #include "PBRScene.hpp"
+#include "FontScene.hpp"
 
 class SceneManager {
 public:
@@ -29,6 +30,7 @@ public:
         m_scenes.push_back(std::make_unique<DeferRendingScene>());
         m_scenes.push_back(std::make_unique<SSAOScene>());
         m_scenes.push_back(std::make_unique<PBRScene>());
+        m_scenes.push_back(std::make_unique<FontScene>());
     }
     
     void switchTo(int index) {

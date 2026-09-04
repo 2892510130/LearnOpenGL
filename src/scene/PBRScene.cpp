@@ -30,13 +30,13 @@ void PBRScene::init()
     Shader prefilter_shader  = Shader(cubeVexPath.string().c_str(), prefilterFragPath.string().c_str());
     Shader background_shader = Shader(backgroundVexPath.string().c_str(), backgroundFragPath.string().c_str());
     Shader brdf_shader       = Shader(brdfVexPath.string().c_str(), brdfFragPath.string().c_str());
-    m_shader["LightPBR"] = light_shader;
-    m_shader["TexturePBR"] = texture_shader;
-    m_shader["ToCube"] = to_cube_shader;
-    m_shader["Background"] = background_shader;
-    m_shader["Irradiance"] = irradiance_shader;
-    m_shader["PreFilter"] = prefilter_shader;
-    m_shader["BRDF"] = brdf_shader;
+    m_shader["LightPBR"]     = light_shader;
+    m_shader["TexturePBR"]   = texture_shader;
+    m_shader["ToCube"]       = to_cube_shader;
+    m_shader["Background"]   = background_shader;
+    m_shader["Irradiance"]   = irradiance_shader;
+    m_shader["PreFilter"]    = prefilter_shader;
+    m_shader["BRDF"]         = brdf_shader;
 
     m_shader["LightPBR"].use();
     m_shader["LightPBR"].setVec3("albedo", 0.5f, 0.0f, 0.0f);

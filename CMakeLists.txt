@@ -17,6 +17,7 @@ add_subdirectory(vendor/stb)
 add_subdirectory(vendor/glm)
 add_subdirectory(vendor/assimp)
 add_subdirectory(vendor/imgui)
+add_subdirectory(vendor/freetype)
 
 function(add_exes TARGET_NAME SOURCE_FILE)
 
@@ -54,6 +55,7 @@ endfunction()
 add_exes(intro src/intro.cpp)
 add_exes(advance src/advance.cpp)
 add_exes(light_advanced src/light_advanced.cpp)
+add_exes(debug src/debug.cpp)
 
 # ImGui supported exe
 
@@ -72,6 +74,7 @@ add_executable(imguiGraphicTest
     src/scene/DeferRendingScene.cpp
     src/scene/SSAOScene.cpp
     src/scene/PBRScene.cpp
+    src/scene/FontScene.cpp
 )
 
 target_link_libraries(imguiGraphicTest
@@ -79,6 +82,7 @@ target_link_libraries(imguiGraphicTest
     stb
     glm
     assimp
+    freetype
 )
 
 target_include_directories(imguiGraphicTest PRIVATE
@@ -86,4 +90,5 @@ target_include_directories(imguiGraphicTest PRIVATE
     vendor/stb
     vendor/glm
     vendor/assimp/include
+    vendor/freetype/include
 )
