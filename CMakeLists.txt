@@ -75,6 +75,7 @@ add_executable(imguiGraphicTest
     src/scene/SSAOScene.cpp
     src/scene/PBRScene.cpp
     src/scene/FontScene.cpp
+    src/scene/AnimationScene.cpp
 )
 
 target_link_libraries(imguiGraphicTest

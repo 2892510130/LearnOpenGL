@@ -14,6 +14,7 @@
 #include "SSAOScene.hpp"
 #include "PBRScene.hpp"
 #include "FontScene.hpp"
+#include "AnimationScene.hpp"
 
 class SceneManager {
 public:
@@ -31,6 +32,7 @@ public:
         m_scenes.push_back(std::make_unique<SSAOScene>());
         m_scenes.push_back(std::make_unique<PBRScene>());
         m_scenes.push_back(std::make_unique<FontScene>());
+        m_scenes.push_back(std::make_unique<AnimationScene>());
     }
     
     void switchTo(int index) {

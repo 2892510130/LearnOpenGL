@@ -4,6 +4,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <stb_image.h>
+#include <string>
 
 #include "mesh.hpp"
 
@@ -55,10 +56,11 @@ class Model
         std::vector<Mesh> meshes;
         std::string directory;
         bool gammaCorrection;
+        bool filpUV;
 
         Model() = default;
 
-        Model(const char *path)
+        Model(const char *path, bool gamma = false, bool filp_uv = true): gammaCorrection(gamma), filpUV(filp_uv)
         {
             loadModel(path);
         }
@@ -70,11 +72,12 @@ class Model
         }
 
     private:
-
         void loadModel(std::string path)
         {
             Assimp::Importer import;
-            const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);  
+            auto flags = aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace;
+            if (filpUV) flags |= aiProcess_FlipUVs;
+            const aiScene* scene = import.ReadFile(path, flags);  
 
             if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) 
             {
@@ -88,13 +91,12 @@ class Model
 
         void processNode(aiNode *node, const aiScene *scene)
         {
-            // 处理节点所有的网格（如果有的话）
+      
             for(unsigned int i = 0; i < node->mNumMeshes; i++)
             {
                 aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
                 meshes.push_back(processMesh(mesh, scene));
             }
-            // 接下来对它的子节点重复这一过程
             for(unsigned int i = 0; i < node->mNumChildren; i++)
             {
                 processNode(node->mChildren[i], scene);
