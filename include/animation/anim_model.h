@@ -8,16 +8,15 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-
-#include "mesh.hpp"
-#include "shader.hpp"
-
 #include <string>
 #include <iostream>
 #include <map>
 #include <vector>
-#include <animation/assimp_glm_helpers.h>
-#include <animation/anim_data.h>
+
+#include "mesh.hpp"
+#include "shader.hpp"
+#include "animation/assimp_glm_helpers.h"
+#include "animation/anim_data.h"
 
 using namespace std;
 
